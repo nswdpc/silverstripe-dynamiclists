@@ -3,6 +3,7 @@
 namespace Symbiote\DynamicLists;
 
 use SilverStripe\ORM\DB;
+use SilverStripe\Security\Member;
 use SilverStripe\Security\Permission;
 use SilverStripe\ORM\DataObject;
 
@@ -52,8 +53,9 @@ class DynamicListItem extends DataObject
 
     public function onAfterWrite()
     {
+        parent::onAfterWrite();
         if ($list = $this->List()) {
-            if ($list->config()->cache_lists) {
+            if ($list->config()->get('cache_lists')) {
                 $list->cacheListData();
             }
         }

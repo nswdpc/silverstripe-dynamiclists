@@ -4,6 +4,7 @@ namespace Symbiote\DynamicLists;
 
 use SilverStripe\View\Requirements;
 use SilverStripe\Core\Convert;
+use SilverStripe\Core\Validation\ValidationResult;
 use SilverStripe\Forms\ReadonlyField;
 
 /*
@@ -50,12 +51,12 @@ class DependentDynamicListDropdownField extends DynamicListField
         'dropdown'
     ];
 
-    public function __construct($name, $title = null, $dynamicLists = null, $dependentOn = '', $value = "", $form = null, $emptyString = null)
+    public function __construct($name, $title = null, $dynamicLists = null, $dependentOn = '', $value = "")
     {
         $this->dependentLists = $dynamicLists;
         $this->dependentOn = $dependentOn;
 
-        parent::__construct($name, $title, [], $value, $form, $emptyString);
+        parent::__construct($name, $title, [], $value);
     }
 
 
@@ -98,11 +99,12 @@ class DependentDynamicListDropdownField extends DynamicListField
     /**
      * Override method for validation to use dynamic list based off the
      * parent's value. Overridden due to null source.
-     * @param type $validator
-     * @return bool
      */
-    public function validate($validator)
+    public function validate(): ValidationResult
     {
+
+        $validator = parent::validate();
+
         // Source isn't pulled in correctly and we're going to rectify this
         // later on, so this can be an empty array for now.
         $source = [];
@@ -125,9 +127,9 @@ class DependentDynamicListDropdownField extends DynamicListField
         // Since there's no data if the list doesn't exist, then of course it will fail
         if (!array_key_exists($this->value, $source) || in_array($this->value, $disabled)) {
             if ($this->getHasEmptyDefault() && !$this->value) {
-                return true;
+                return $validator;
             }
-            $validator->validationError(
+            $validator->addFieldError(
                 $this->name,
                 _t(
                     'DropdownField.SOURCE_VALIDATION',
@@ -136,9 +138,8 @@ class DependentDynamicListDropdownField extends DynamicListField
                 ),
                 "validation"
             );
-            return false;
         }
-        return true;
+        return $validator;
     }
 
     /**
@@ -146,9 +147,10 @@ class DependentDynamicListDropdownField extends DynamicListField
      */
     public function performReadonlyTransformation()
     {
-        $field = new ReadonlyField($this->name, $this->title, $this->value);
+        $field = ReadonlyField::create($this->name, $this->title, $this->value);
         $field->addExtraClass($this->extraClass());
         $field->setForm($this->form);
+        // @phpstan-ignore return.type
         return $field;
     }
 }

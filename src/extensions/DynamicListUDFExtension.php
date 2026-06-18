@@ -5,7 +5,7 @@ namespace Symbiote\DynamicLists;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\LiteralField;
-use SilverStripe\ORM\DataExtension;
+use SilverStripe\Core\Extension;
 use SilverStripe\UserForms\Model\EditableFormField;
 use SilverStripe\UserForms\Model\UserDefinedForm;
 
@@ -14,7 +14,7 @@ use SilverStripe\UserForms\Model\UserDefinedForm;
  *  @author Nathan Glasl <nathan@symbiote.com.au>
  */
 
-class DynamicListUDFExtension extends DataExtension
+class DynamicListUDFExtension extends Extension
 {
     private static $default_sort = 'Title';
 

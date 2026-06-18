@@ -29,7 +29,7 @@ class DynamicListCsvLoader extends CsvBulkLoader
 
         $existingList = DynamicList::get_dynamic_list($title);
         if (!$existingList) {
-            $existingList = new DynamicList;
+            $existingList = DynamicList::create();
             $existingList->Title = $title;
             $existingList->write();
         }
@@ -40,10 +40,12 @@ class DynamicListCsvLoader extends CsvBulkLoader
             '"Title"=\'' . Convert::raw2sql($item) . '\' AND "ListID" = ' . ((int) $existingList->ID)
         );
         if (!$existingItem) {
-            $existingItem = new DynamicListItem;
+            $existingItem = DynamicListItem::create();
             $existingItem->Title = $item;
             $existingItem->ListID = $existingList->ID;
             $existingItem->write();
         }
+
+        return $existingList->ID;
     }
 }

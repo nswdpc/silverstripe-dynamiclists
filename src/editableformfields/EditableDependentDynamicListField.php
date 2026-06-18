@@ -5,6 +5,7 @@ namespace Symbiote\DynamicLists;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\UserForms\Model\EditableFormField\EditableDropdown;
+use SilverStripe\UserForms\Model\EditableFormField;
 
 /*
 
@@ -70,8 +71,9 @@ class EditableDependentDynamicListField extends EditableDropdown
         // The assumption being made here is that each entry in the source list has a corresponding dynamic list
         // defined for it, which we use later on.
         $options = [];
-        if ($this->Parent()) {
-            $sourceList = $this->Parent()->Fields();
+        $parent = $this->Parent();
+        if ($parent && $parent->hasMethod('Fields')) {
+            $sourceList = $parent->Fields();
             if ($sourceList) {
                 $options = $sourceList->map('Name', 'Title');
             }
@@ -94,7 +96,11 @@ class EditableDependentDynamicListField extends EditableDropdown
         $sourceList = $this->SourceList;
 
         // first off lets go and output all the options we need
-        $fields = $this->Parent()->Fields();
+        $parent = $this->Parent();
+        $fields = [];
+        if($parent && $parent->hasMethod('Fields')) {
+            $fields = $parent->Fields();
+        }
         $source = null;
         foreach ($fields as $field) {
             if ($field->Name == $sourceList) {
@@ -139,7 +145,7 @@ class EditableDependentDynamicListField extends EditableDropdown
         }
 
 
-        // return a new list
+        // @phpstan-ignore return.type
         return LiteralField::create($this->Name, 'no source list found');
     }
 }

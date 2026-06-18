@@ -15,7 +15,7 @@ class DynamicListField extends DropdownField
         'dropdown'
     ];
 
-    public function __construct($name, $title = null, $source = null, $value = "", $form = null, $emptyString = null)
+    public function __construct($name, $title = null, $source = null, $value = "")
     {
         if (!$source) {
             $source = [];
@@ -33,6 +33,6 @@ class DynamicListField extends DropdownField
             }
         }
 
-        parent::__construct($name, $title, $source, $value, $form, $emptyString);
+        parent::__construct($name, $title, $source, $value);
     }
 }

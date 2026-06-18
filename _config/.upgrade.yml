@@ -1,8 +1,0 @@
-SilverStripe\ORM\DatabaseAdmin:
-  classname_value_remapping:
-    DynamicList: 'Symbiote\DynamicLists\DynamicList'
-    DynamicListItem: 'Symbiote\DynamicLists\DynamicListItem'
-mappings:
-  DynamicList: Symbiote\DynamicLists\DynamicList
-  DynamicListItem: Symbiote\DynamicLists\DynamicListItem
-

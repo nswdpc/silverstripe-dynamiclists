@@ -4,7 +4,8 @@ namespace Symbiote\DynamicLists;
 
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Forms\DropdownField;
-use \SilverStripe\UserForms\Model\EditableFormField\EditableDropdown;
+use SilverStripe\UserForms\Model\EditableFormField\EditableDropdown;
+use SilverStripe\UserForms\Model\EditableFormField;
 
 /*
 
