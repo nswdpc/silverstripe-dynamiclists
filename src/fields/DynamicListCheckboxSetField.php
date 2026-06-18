@@ -22,7 +22,7 @@ class DynamicListCheckboxSetField extends CheckboxSetField
             // it should be the name of a list, lets get all its contents
             $dynamicList = DynamicList::get_dynamic_list($source);
             $source = [];
-            if ($dynamicList) {
+            if ($dynamicList instanceof \Symbiote\DynamicLists\DynamicList) {
                 $items = $dynamicList->Items();
                 foreach ($items as $item) {
                     $source[$item->Title] = $item->Title;

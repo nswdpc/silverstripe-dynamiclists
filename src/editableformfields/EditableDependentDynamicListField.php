@@ -41,28 +41,33 @@ if (!class_exists(EditableDropdown::class)) {
     return;
 }
 
+/**
+ * @property ?string $SourceList
+ */
 class EditableDependentDynamicListField extends EditableDropdown
 {
-    private static $db = [
+    private static array $db = [
         'SourceList' => 'Varchar(512)'
     ];
 
-    private static $table_name = 'EditableDependentDynamicListField';
+    private static string $table_name = 'EditableDependentDynamicListField';
 
-    private static $singular_name = 'Dependent Dynamic List field';
+    private static string $singular_name = 'Dependent Dynamic List field';
 
-    private static $plural_name = 'Dependent Dynamic List fields';
+    private static string $plural_name = 'Dependent Dynamic List fields';
 
-    public function Icon()
+    public function Icon(): string
     {
         return 'userforms/images/editabledropdown.png';
     }
 
+    #[\Override]
     public function getHasAddableOptions()
     {
         return false;
     }
 
+    #[\Override]
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
@@ -91,6 +96,7 @@ class EditableDependentDynamicListField extends EditableDropdown
         return $fields;
     }
 
+    #[\Override]
     public function getFormField()
     {
         $sourceList = $this->SourceList;
@@ -101,6 +107,7 @@ class EditableDependentDynamicListField extends EditableDropdown
         if($parent && $parent->hasMethod('Fields')) {
             $fields = $parent->Fields();
         }
+
         $source = null;
         foreach ($fields as $field) {
             if ($field->Name == $sourceList) {
@@ -114,20 +121,20 @@ class EditableDependentDynamicListField extends EditableDropdown
             // all our potential lists come from the source list's dynamic list source, so we need to go load that
             // first, then iterate it and build all the additional required lists
             $sourceList = DynamicList::get_dynamic_list($source->ListTitle);
-            if ($sourceList) {
+            if ($sourceList instanceof \Symbiote\DynamicLists\DynamicList) {
                 $items = $sourceList->Items();
 
                 // now lets create a bunch of option fields
                 foreach ($items as $sourceItem) {
                     // now get the dynamic list that is represented by this one
                     $list = DynamicList::get_dynamic_list($sourceItem->Title);
-                    if ($list) {
+                    if ($list instanceof \Symbiote\DynamicLists\DynamicList) {
                         $optionLists[$sourceItem->Title] = $sourceItem->Title;
                     }
                 }
             }
 
-            if (count($optionLists)) {
+            if ($optionLists !== []) {
                 $field = DependentDynamicListDropdownField::create(
                     $this->Name,
                     $this->Title,
@@ -137,6 +144,7 @@ class EditableDependentDynamicListField extends EditableDropdown
             } else {
                 $field = DropdownField::create($this->Name, $this->Title, []);
             }
+
             $field
                 ->setFieldHolderTemplate(EditableFormField::class . '_holder')
                 ->setTemplate(self::class);

@@ -13,32 +13,37 @@ use SilverStripe\ORM\DataObject;
  * using the DynamicListField form control.
  *
  * @author Marcus Nyeholt <marcus@symbiote.com.au>
+ * @property string $Title
+ * @property int $Sort
+ * @property int $ListID
+ * @method \Symbiote\DynamicLists\DynamicList List()
  */
 class DynamicListItem extends DataObject
 {
-    private static $table_name = 'DynamicListItem';
+    private static string $table_name = 'DynamicListItem';
 
-    private static $db = [
+    private static array $db = [
         'Title' => 'Varchar(128)',
         'Sort' => 'Int'
     ];
 
-    private static $indexes = [
+    private static array $indexes = [
         'Title' => true,
         'Sort' => true
     ];
 
-    private static $has_one = [
+    private static array $has_one = [
         'List' => DynamicList::class
     ];
 
-    private static $summary_fields = [
+    private static array $summary_fields = [
         'Title'
     ];
 
-    private static $default_sort = 'Sort, ID';
+    private static string $default_sort = 'Sort, ID';
 
 
+    #[\Override]
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
@@ -47,6 +52,7 @@ class DynamicListItem extends DataObject
         return $fields;
     }
 
+    #[\Override]
     public function onBeforeWrite()
     {
         parent::onBeforeWrite();
@@ -56,16 +62,16 @@ class DynamicListItem extends DataObject
 //      }
     }
 
+    #[\Override]
     public function onAfterWrite()
     {
         parent::onAfterWrite();
-        if ($list = $this->List()) {
-            if ($list->config()->get('cache_lists')) {
-                $list->cacheListData();
-            }
+        if (($list = $this->List()) && $list->config()->get('cache_lists')) {
+            $list->cacheListData();
         }
     }
 
+    #[\Override]
     public function canView($member = null)
     {
         return true;
@@ -75,6 +81,7 @@ class DynamicListItem extends DataObject
      * @param Member $member
      * @return boolean
      */
+    #[\Override]
     public function canEdit($member = null)
     {
         return Permission::check('CMS_ACCESS_Symbiote\DynamicLists\DynamicListAdmin', 'any', $member);
@@ -84,6 +91,7 @@ class DynamicListItem extends DataObject
      * @param Member $member
      * @return boolean
      */
+    #[\Override]
     public function canDelete($member = null)
     {
         return Permission::check('CMS_ACCESS_Symbiote\DynamicLists\DynamicListAdmin', 'any', $member);
@@ -95,6 +103,7 @@ class DynamicListItem extends DataObject
      * @param Member $member
      * @return boolean
      */
+    #[\Override]
     public function canCreate($member = null, $context = [])
     {
         return Permission::check('CMS_ACCESS_Symbiote\DynamicLists\DynamicListAdmin', 'any', $member);

@@ -33,33 +33,25 @@ OF SUCH DAMAGE.
  */
 class DependentDynamicListDropdownField extends DynamicListField
 {
-    /**
-     * The lists that should be used to populate the dynamic list
-     *
-     * @var array
-     */
-    protected $dependentLists;
-
-    /**
-     * The Name of the other form control that we're dependent upon
-     *
-     * @var String
-     */
-    protected $dependentOn;
-
     protected $extraClasses = [
         'dropdown'
     ];
 
-    public function __construct($name, $title = null, $dynamicLists = null, $dependentOn = '', $value = "")
+    public function __construct(
+        $name,
+        $title = null,
+        // The lists that should be used to populate the dynamic list
+        protected array $dependentLists = [],
+        // The Name of the other form control that we're dependent upon
+        protected string $dependentOn = '',
+        $value = ""
+    )
     {
-        $this->dependentLists = $dynamicLists;
-        $this->dependentOn = $dependentOn;
-
         parent::__construct($name, $title, [], $value);
     }
 
 
+    #[\Override]
     public function Field($properties = [])
     {
 
@@ -71,7 +63,7 @@ class DependentDynamicListDropdownField extends DynamicListField
 
         if (is_string($this->dependentLists)) {
             $list = DynamicList::get_dynamic_list($this->dependentLists);
-            if ($list) {
+            if ($list instanceof \Symbiote\DynamicLists\DynamicList) {
                 $this->dependentLists = $list->Items()->map('Title', 'Title')->toArray();
             }
         }
@@ -80,12 +72,13 @@ class DependentDynamicListDropdownField extends DynamicListField
             $this->dependentLists = [];
         }
 
-        foreach ($this->dependentLists as $k => $v) {
+        foreach (array_keys($this->dependentLists) as $k) {
             $list = DynamicList::get_dynamic_list($k);
-            if ($list) {
+            if ($list instanceof \Symbiote\DynamicLists\DynamicList) {
                 $listItems[$k] = $list->Items()->map('Title', 'Title')->toArray();
             }
         }
+
         $this->setAttribute('data-listoptions', json_encode($listItems));
         $this->setAttribute('data-dependentOn', $this->dependentOn);
 
@@ -100,6 +93,7 @@ class DependentDynamicListDropdownField extends DynamicListField
      * Override method for validation to use dynamic list based off the
      * parent's value. Overridden due to null source.
      */
+    #[\Override]
     public function validate(): ValidationResult
     {
 
@@ -119,7 +113,7 @@ class DependentDynamicListDropdownField extends DynamicListField
 
         // Use the items from the Dynamic list as the "source" for validation purposes
         $parentList = DynamicList::get_dynamic_list($parentListName);
-        if ($parentList) {
+        if ($parentList instanceof \Symbiote\DynamicLists\DynamicList) {
             $source = $parentList->Items()->map('Title', 'Title')->toArray();
         }
 
@@ -129,6 +123,7 @@ class DependentDynamicListDropdownField extends DynamicListField
             if ($this->getHasEmptyDefault() && !$this->value) {
                 return $validator;
             }
+
             $validator->addFieldError(
                 $this->name,
                 _t(
@@ -139,12 +134,14 @@ class DependentDynamicListDropdownField extends DynamicListField
                 "validation"
             );
         }
+
         return $validator;
     }
 
     /**
      * Returns a readonly version of this field
      */
+    #[\Override]
     public function performReadonlyTransformation()
     {
         $field = ReadonlyField::create($this->name, $this->title, $this->value);

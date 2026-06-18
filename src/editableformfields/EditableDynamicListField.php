@@ -39,27 +39,33 @@ if (!class_exists(EditableDropdown::class)) {
     return;
 }
 
+/**
+ * @property ?string $ListTitle
+ */
 class EditableDynamicListField extends EditableDropdown
 {
-    private static $db = [
+    private static array $db = [
         'ListTitle' => 'Varchar(512)'
     ];
 
-    private static $table_name = 'EditableDynamicListField';
+    private static string $table_name = 'EditableDynamicListField';
 
-    private static $singular_name = 'Dynamic List field';
-    private static $plural_name = 'Dynamic List fields';
+    private static string $singular_name = 'Dynamic List field';
 
-    public function Icon()
+    private static string $plural_name = 'Dynamic List fields';
+
+    public function Icon(): string
     {
         return 'userforms/images/editabledropdown.png';
     }
 
+    #[\Override]
     public function getHasAddableOptions()
     {
         return false;
     }
 
+    #[\Override]
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
@@ -88,6 +94,7 @@ class EditableDynamicListField extends EditableDropdown
         return $fields;
     }
 
+    #[\Override]
     public function getFormField()
     {
         $field = DynamicListField::create($this->Name, $this->Title, $this->ListTitle)
@@ -96,6 +103,7 @@ class EditableDynamicListField extends EditableDropdown
         if ($this->UseEmptyString) {
             $field->setEmptyString($this->EmptyString ?: '');
         }
+
         $this->doUpdateFormField($field);
         return $field;
     }

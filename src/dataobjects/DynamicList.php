@@ -17,21 +17,25 @@ use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
  *
  * @author Marcus Nyeholt <marcus@symbiote.com.au>
  * @license BSD License http://silverstripe.org/bsd-license
+ * @property string $Title
+ * @property ?string $CachedItems
+ * @method \SilverStripe\ORM\HasManyList<\Symbiote\DynamicLists\DynamicListItem> Items()
+ * @mixin \Symbiote\DynamicLists\DynamicListUDFExtension
  */
 class DynamicList extends DataObject
 {
-    private static $table_name = 'DynamicList';
+    private static string $table_name = 'DynamicList';
 
-    private static $db = [
+    private static array $db = [
         'Title' => 'Varchar(128)',
         'CachedItems'   => 'Text'
     ];
 
-    private static $indexes = [
+    private static array $indexes = [
         'Title' => true
     ];
 
-    private static $has_many = [
+    private static array $has_many = [
         'Items' => DynamicListItem::class
     ];
 
@@ -40,6 +44,7 @@ class DynamicList extends DataObject
      */
     private static bool $cache_lists = false;
 
+    #[\Override]
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
@@ -59,6 +64,7 @@ class DynamicList extends DataObject
         return $fields;
     }
 
+    #[\Override]
     public function onBeforeDelete()
     {
         parent::onBeforeDelete();
@@ -69,6 +75,7 @@ class DynamicList extends DataObject
         }
     }
 
+    #[\Override]
     public function canView($member = null)
     {
         return true;
@@ -78,6 +85,7 @@ class DynamicList extends DataObject
      * @param Member $member
      * @return boolean
      */
+    #[\Override]
     public function canEdit($member = null)
     {
         return Permission::check('CMS_ACCESS_Symbiote\DynamicLists\DynamicListAdmin', 'any', $member);
@@ -87,6 +95,7 @@ class DynamicList extends DataObject
      * @param Member $member
      * @return boolean
      */
+    #[\Override]
     public function canDelete($member = null)
     {
         return Permission::check('CMS_ACCESS_Symbiote\DynamicLists\DynamicListAdmin', 'any', $member);
@@ -98,6 +107,7 @@ class DynamicList extends DataObject
      * @param Member $member
      * @return boolean
      */
+    #[\Override]
     public function canCreate($member = null, $context = [])
     {
         return Permission::check('CMS_ACCESS_Symbiote\DynamicLists\DynamicListAdmin', 'any', $member);
@@ -108,8 +118,7 @@ class DynamicList extends DataObject
      */
     public static function get_dynamic_list(string $title): ?DynamicList
     {
-        $list = DynamicList::get()->filter(['Title' => $title])->first();
-        return $list;
+        return DynamicList::get()->filter(['Title' => $title])->first();
     }
 
     public function getItemByTitle($title): DynamicListItem
@@ -147,12 +156,11 @@ class DynamicList extends DataObject
     {
         if ($this->config()->get('cache_lists')) {
             $str = $this->CachedItems;
-            if (strlen($str) && $items = @unserialize($str)) {
+            if (strlen((string) $str) && $items = @unserialize($str)) {
                 return $items;
             }
         }
 
-        $mapped = $this->Items()->map()->toArray();
-        return $mapped;
+        return $this->Items()->map()->toArray();
     }
 }

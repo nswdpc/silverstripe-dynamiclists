@@ -20,15 +20,14 @@ class DynamicListCsvLoader extends CsvBulkLoader
         ];
     }
 
+    #[\Override]
     protected function processRecord($record, $columnMap, &$results, $preview = false)
     {
-        $class = $this->objectClass;
-
         $title = trim((string) $record['Title']);
         $item = trim((string) $record['ListItem']);
 
         $existingList = DynamicList::get_dynamic_list($title);
-        if (!$existingList) {
+        if (!$existingList instanceof \Symbiote\DynamicLists\DynamicList) {
             $existingList = DynamicList::create();
             $existingList->Title = $title;
             $existingList->write();

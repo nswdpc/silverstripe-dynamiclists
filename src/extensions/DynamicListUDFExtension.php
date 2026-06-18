@@ -12,11 +12,11 @@ use SilverStripe\UserForms\Model\UserDefinedForm;
 /**
  *  This extension is to help identify dynamic lists a little better.
  *  @author Nathan Glasl <nathan@symbiote.com.au>
+ * @extends \SilverStripe\Core\Extension<(static & \Symbiote\DynamicLists\DynamicList)>
  */
-
 class DynamicListUDFExtension extends Extension
 {
-    private static $default_sort = 'Title';
+    private static string $default_sort = 'Title';
 
     public function updateDynamicListCMSFields($fields)
     {
@@ -32,22 +32,19 @@ class DynamicListUDFExtension extends Extension
         $found = [];
         foreach ($used as $field) {
             // This information is stored using a serialised list, therefore we need to iterate through.
-
-            if ($field->ListTitle === $this->owner->Title) {
-                // Make sure there are no duplicates recorded.
-
-                if (!isset($found[$field->ParentID]) && ($form = UserDefinedForm::get()->byID($field->ParentID))) {
-                    $found[$field->ParentID] = "<a href='{$form->CMSEditLink()}'>{$form->Title}</a>";
-                }
+            // Make sure there are no duplicates recorded.
+            if ($field->ListTitle === $this->getOwner()->Title && (!isset($found[$field->ParentID]) && $form = UserDefinedForm::get()->byID($field->ParentID))) {
+                $found[$field->ParentID] = "<a href='{$form->getCMSEditLink()}'>{$form->Title}</a>";
             }
         }
 
         // Display whether there were any dynamic lists found on user defined forms.
 
-        if (count($found)) {
+        if ($found !== []) {
             $fields->removeByName('UsedOnHeader');
             $fields->addFieldToTab('Root.Main', HeaderField::create('UsedOnHeader', 'Used On', 5));
         }
+
         $display = count($found) ? implode('<br>', $found) : 'This dynamic list is <strong>not</strong> used.';
         $fields->removeByName('UsedOn');
         $fields->addFieldToTab('Root.Main', LiteralField::create('UsedOn', '<div>' . $display . '</div>'));
