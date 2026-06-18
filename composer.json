@@ -30,6 +30,19 @@
         "rector-process": "./vendor/bin/rector process --no-diffs --ansi --config vendor/nswdpc/ci-files/rector/.rector.silverstripe_6_83.php src/ tests/",
         "phpcsfixer-fix": "./vendor/bin/php-cs-fixer fix --ansi --no-interaction --config vendor/nswdpc/ci-files/php-cs-fixer/.php-cs-fixer.php src/ tests/"
     },
+    "autoload": {
+        "psr-4": {
+            "Symbiote\\DynamicLists\\": [
+                "src/controllers",
+                "src/dataobjects",
+                "src/editableformfields",
+                "src/extensions",
+                "src/fields",
+                "src/loaders"
+            ],
+            "Symbiote\\DynamicLists\\Tests\\": "tests/"
+        }
+    },
     "extra": {
         "expose": [
             "javascript"
