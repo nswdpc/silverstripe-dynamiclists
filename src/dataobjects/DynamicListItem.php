@@ -23,6 +23,11 @@ class DynamicListItem extends DataObject
         'Sort' => 'Int'
     ];
 
+    private static $indexes = [
+        'Title' => true,
+        'Sort' => true
+    ];
+
     private static $has_one = [
         'List' => DynamicList::class
     ];

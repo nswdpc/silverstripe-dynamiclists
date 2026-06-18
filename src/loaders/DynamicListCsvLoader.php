@@ -35,10 +35,10 @@ class DynamicListCsvLoader extends CsvBulkLoader
         }
 
         // now add the item to that list
-        $existingItem = DataObject::get_one(
-            DynamicListItem::class,
-            '"Title"=\'' . Convert::raw2sql($item) . '\' AND "ListID" = ' . ((int) $existingList->ID)
-        );
+        $existingItem = DynamicListItem::get()->filter([
+            'Title' => $item,
+            'ListID' => $existingList->ID
+        ])->first();
         if (!$existingItem) {
             $existingItem = DynamicListItem::create();
             $existingItem->Title = $item;

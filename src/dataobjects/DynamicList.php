@@ -27,6 +27,10 @@ class DynamicList extends DataObject
         'CachedItems'   => 'Text'
     ];
 
+    private static $indexes = [
+        'Title' => true
+    ];
+
     private static $has_many = [
         'Items' => DynamicListItem::class
     ];
@@ -100,18 +104,20 @@ class DynamicList extends DataObject
     }
 
     /**
-     * Convenience method for getting a data list
+     * Convenience method for getting a data list via its title
      */
     public static function get_dynamic_list(string $title): ?DynamicList
     {
-        $list = DynamicList::get()->filter('Title', $title)->first();
+        $list = DynamicList::get()->filter(['Title' => $title])->first();
         return $list;
     }
 
-    public function getItemByTitle($title)
+    public function getItemByTitle($title): DynamicListItem
     {
-        $SQL_title = Convert::raw2sql($title);
-        $item = DataObject::get_one(DynamicListItem::class, "\"ListID\" = $this->ID AND \"Title\" = '{$SQL_title}'");
+        $item = DynamicListItem::get()->filter([
+            "ListID" => $this->ID,
+            "Title" => $title
+        ])->first();
         if (!$item || !$item->exists()) {
             // create item
             $item = DynamicListItem::create();
