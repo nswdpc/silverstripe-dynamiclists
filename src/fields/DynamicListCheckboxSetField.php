@@ -2,8 +2,6 @@
 
 namespace Symbiote\DynamicLists;
 
-use SilverStripe\Core\Convert;
-use SilverStripe\ORM\DataObject;
 use SilverStripe\Forms\CheckboxSetField;
 
 /*

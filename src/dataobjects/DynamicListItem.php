@@ -56,10 +56,10 @@ class DynamicListItem extends DataObject
     public function onBeforeWrite()
     {
         parent::onBeforeWrite();
-//      if (!$this->Sort) {
-//          $parentID = ($this->ListID) ? $this->ListID : 0;
-//          $this->Sort = DB::query("SELECT MAX(\"Sort\") + 1 FROM \"DynamicListItem\" WHERE \"ListID\" = $parentID")->value();
-//      }
+        //      if (!$this->Sort) {
+        //          $parentID = ($this->ListID) ? $this->ListID : 0;
+        //          $this->Sort = DB::query("SELECT MAX(\"Sort\") + 1 FROM \"DynamicListItem\" WHERE \"ListID\" = $parentID")->value();
+        //      }
     }
 
     #[\Override]

@@ -104,7 +104,7 @@ class EditableDependentDynamicListField extends EditableDropdown
         // first off lets go and output all the options we need
         $parent = $this->Parent();
         $fields = [];
-        if($parent && $parent->hasMethod('Fields')) {
+        if ($parent && $parent->hasMethod('Fields')) {
             $fields = $parent->Fields();
         }
 

@@ -3,7 +3,6 @@
 namespace Symbiote\DynamicLists;
 
 use SilverStripe\View\Requirements;
-use SilverStripe\Core\Convert;
 use SilverStripe\Core\Validation\ValidationResult;
 use SilverStripe\Forms\ReadonlyField;
 
@@ -45,8 +44,7 @@ class DependentDynamicListDropdownField extends DynamicListField
         // The Name of the other form control that we're dependent upon
         protected string $dependentOn = '',
         $value = ""
-    )
-    {
+    ) {
         parent::__construct($name, $title, [], $value);
     }
 
