@@ -3,11 +3,9 @@
 namespace Symbiote\DynamicLists;
 
 use SilverStripe\Versioned\Versioned;
-use SilverStripe\Forms\HeaderField;
-use SilverStripe\Forms\LiteralField;
+use SilverStripe\Forms\HTMLReadonlyField;
 use SilverStripe\Core\Extension;
-use SilverStripe\UserForms\Model\EditableFormField;
-use SilverStripe\UserForms\Model\UserDefinedForm;
+use SilverStripe\UserForms\Extension\UserFormFieldEditorExtension;
 
 /**
  *  This extension is to help identify dynamic lists a little better.
@@ -23,31 +21,41 @@ class DynamicListUDFExtension extends Extension
 
         // Make sure the draft records are being looked at.
 
-        $stage = Versioned::get_stage();
-        Versioned::set_stage(Versioned::DRAFT);
-        $used = EditableFormField::get()->filter(['ClassName:PartialMatch' => DynamicList::class]);
+        $title = trim($this->getOwner()->Title ?? '');
+        if($title !== '') {
 
-        // Determine whether this dynamic list is being used anywhere.
+            $used = Versioned::withVersionedMode(
+                function() use ($title) {
+                    Versioned::set_stage(Versioned::DRAFT);
+                    return EditableDynamicListField::get()->filter(['ListTitle' => $title]);
+                }
+            );
 
-        $found = [];
-        foreach ($used as $field) {
-            // This information is stored using a serialised list, therefore we need to iterate through.
-            // Make sure there are no duplicates recorded.
-            if ($field->ListTitle === $this->getOwner()->Title && (!isset($found[$field->ParentID]) && $form = UserDefinedForm::get()->byID($field->ParentID))) {
-                $found[$field->ParentID] = "<a href='{$form->getCMSEditLink()}'>{$form->Title}</a>";
+            // Determine whether this dynamic list is being used anywhere.
+            $found = [];
+            foreach ($used as $field) {
+                $parent = $field->Parent();
+                if($parent && $parent->hasExtension(UserFormFieldEditorExtension::class) && $parent->hasMethod('getCMSEditLink')) {
+                    $link = htmlspecialchars($parent->getCMSEditLink());
+                    $title = htmlspecialchars($parent->Title);
+                    $found[$field->ParentID] = "<a href=\"{$link}\">{$title}</a>";
+                }
             }
+
+            // Display whether there were any dynamic lists found on user defined forms.
+            $html = "";
+            if ($found !== []) {
+                $html = "<ul><li>" . implode("</li><li>", $found) . "</li></ul>";
+            }
+
+            $fields->insertAfter(
+                'Title',
+                HTMLReadonlyField::create(
+                    'UsedOnUserDefinedFormField',
+                    _t(self::class . '.USED_ON_THESE_FORMS', 'This list is used on these forms'),
+                    $html
+                )
+            );
         }
-
-        // Display whether there were any dynamic lists found on user defined forms.
-
-        if ($found !== []) {
-            $fields->removeByName('UsedOnHeader');
-            $fields->addFieldToTab('Root.Main', HeaderField::create('UsedOnHeader', 'Used On', 5));
-        }
-
-        $display = count($found) ? implode('<br>', $found) : 'This dynamic list is <strong>not</strong> used.';
-        $fields->removeByName('UsedOn');
-        $fields->addFieldToTab('Root.Main', LiteralField::create('UsedOn', '<div>' . $display . '</div>'));
-        Versioned::set_stage($stage);
     }
 }
