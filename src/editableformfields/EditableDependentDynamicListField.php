@@ -184,6 +184,7 @@ class EditableDependentDynamicListField extends EditableDropdown
             $field = LiteralField::create(
                 $this->Name,
                 '<p>' . htmlspecialchars(_t('EditableDependentDynamicListField.NO_SOURCE_LIST_FOUND', 'No source list found')) . '</p>'
+            );
         }
         $this->doUpdateFormField($field);
         return $field;
