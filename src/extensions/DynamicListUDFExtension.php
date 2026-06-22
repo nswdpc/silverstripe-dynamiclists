@@ -36,7 +36,7 @@ class DynamicListUDFExtension extends Extension
             foreach ($used as $field) {
                 $parent = $field->Parent();
                 if($parent && $parent->hasExtension(UserFormFieldEditorExtension::class) && $parent->hasMethod('getCMSEditLink')) {
-                    $link = htmlspecialchars($parent->getCMSEditLink());
+                    $link = htmlspecialchars((string) $parent->getCMSEditLink());
                     $title = htmlspecialchars($parent->Title);
                     $found[$field->ParentID] = "<a href=\"{$link}\">{$title}</a>";
                 }

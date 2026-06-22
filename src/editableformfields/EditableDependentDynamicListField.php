@@ -102,6 +102,7 @@ class EditableDependentDynamicListField extends EditableDropdown
                 $fields = $fields->innerJoin('EditableDynamicListField', '"EditableDynamicListField"."ID" = "EditableFormField"."ID"');
             }
         }
+
         return $fields;
     }
 
@@ -115,7 +116,7 @@ class EditableDependentDynamicListField extends EditableDropdown
         // defined for it, which we use later on.
         $options = [];
         $sourceList = $this->getRelevantFieldsFromParent();
-        if ($sourceList) {
+        if ($sourceList instanceof \SilverStripe\ORM\HasManyList) {
             $options = $sourceList->map('Name', 'Title');
         }
 
@@ -150,7 +151,7 @@ class EditableDependentDynamicListField extends EditableDropdown
             }
         }
 
-        if ($source) {
+        if ($source instanceof \SilverStripe\ORM\DataObject) {
             // all our potential lists come from the source list's dynamic list source, so we need to go load that
             // first, then iterate it and build all the additional required lists
             $sourceList = DynamicList::get_dynamic_list($source->ListTitle ?? '');
@@ -187,6 +188,7 @@ class EditableDependentDynamicListField extends EditableDropdown
                 '<p>' . htmlspecialchars(_t('EditableDependentDynamicListField.NO_SOURCE_LIST_FOUND', 'No source list found')) . '</p>'
             );
         }
+
         $this->doUpdateFormField($field);
         return $field;
     }
