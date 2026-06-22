@@ -39,8 +39,8 @@ class DependentDynamicListDropdownField extends DynamicListField
     public function __construct(
         $name,
         $title = null,
-        // The lists that should be used to populate the dynamic list
-        protected array $dependentLists = [],
+        // The list(s) that should be used to populate the dynamic list
+        protected array|string $dependentLists = [],
         // The Name of the other form control that we're dependent upon
         protected string $dependentOn = '',
         $value = ""
@@ -64,10 +64,6 @@ class DependentDynamicListDropdownField extends DynamicListField
             if ($list instanceof \Symbiote\DynamicLists\DynamicList) {
                 $this->dependentLists = $list->Items()->map('Title', 'Title')->toArray();
             }
-        }
-
-        if (!is_array($this->dependentLists)) {
-            $this->dependentLists = [];
         }
 
         foreach (array_keys($this->dependentLists) as $k) {
