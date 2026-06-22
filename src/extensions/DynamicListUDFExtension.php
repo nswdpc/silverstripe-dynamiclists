@@ -22,10 +22,10 @@ class DynamicListUDFExtension extends Extension
         // Make sure the draft records are being looked at.
 
         $title = trim($this->getOwner()->Title ?? '');
-        if($title !== '') {
+        if ($title !== '') {
 
             $used = Versioned::withVersionedMode(
-                function() use ($title) {
+                function () use ($title) {
                     Versioned::set_stage(Versioned::DRAFT);
                     return EditableDynamicListField::get()->filter(['ListTitle' => $title]);
                 }
@@ -35,7 +35,7 @@ class DynamicListUDFExtension extends Extension
             $found = [];
             foreach ($used as $field) {
                 $parent = $field->Parent();
-                if($parent && $parent->hasExtension(UserFormFieldEditorExtension::class) && $parent->hasMethod('getCMSEditLink')) {
+                if ($parent && $parent->hasExtension(UserFormFieldEditorExtension::class) && $parent->hasMethod('getCMSEditLink')) {
                     $link = htmlspecialchars((string) $parent->getCMSEditLink());
                     $title = htmlspecialchars($parent->Title);
                     $found[$field->ParentID] = "<a href=\"{$link}\">{$title}</a>";

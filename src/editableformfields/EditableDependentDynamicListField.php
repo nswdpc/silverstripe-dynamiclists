@@ -77,7 +77,7 @@ class EditableDependentDynamicListField extends EditableDropdown
     final protected function getParentForFields(): ?DataObject
     {
         $parent = $this->Parent();
-        if($parent && $parent->hasExtension(UserFormFieldEditorExtension::class)) {
+        if ($parent && $parent->hasExtension(UserFormFieldEditorExtension::class)) {
             return $parent;
         } else {
             return null;
@@ -93,12 +93,12 @@ class EditableDependentDynamicListField extends EditableDropdown
     {
         $parent = $this->getParentForFields();
         $fields = null;
-        if($parent instanceof DataObject) {
+        if ($parent instanceof DataObject) {
             // the parent has the UserFormFieldEditorExtension extension
             // which provides the 'Fields' relation
             // @phpstan-ignore method.notFound
             $fields = $parent->Fields();
-            if($fields instanceof HasManyList) {
+            if ($fields instanceof HasManyList) {
                 $fields = $fields->innerJoin('EditableDynamicListField', '"EditableDynamicListField"."ID" = "EditableFormField"."ID"');
             }
         }
@@ -139,7 +139,7 @@ class EditableDependentDynamicListField extends EditableDropdown
         $optionLists = [];
 
         $source = null;
-        if($sourceList !== '') {
+        if ($sourceList !== '') {
             // first off lets go and output all the options we need
             $fields = $this->getRelevantFieldsFromParent();
 
