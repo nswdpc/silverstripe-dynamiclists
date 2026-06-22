@@ -24,7 +24,7 @@ class DynamicListUDFExtension extends Extension
         // Make sure the draft records are being looked at.
 
         $stage = Versioned::get_stage();
-        Versioned::set_stage('Stage');
+        Versioned::set_stage(Versioned::DRAFT);
         $used = EditableFormField::get()->filter(['ClassName:PartialMatch' => DynamicList::class]);
 
         // Determine whether this dynamic list is being used anywhere.
