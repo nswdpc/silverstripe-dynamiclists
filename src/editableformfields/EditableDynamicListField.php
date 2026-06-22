@@ -69,26 +69,22 @@ class EditableDynamicListField extends EditableDropdown
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
+        // options are sourced from the selected dynamic list
         $fields->removeByName(['Options']);
 
         // get a list of data lists to select from
-        $allLists = DataObject::get(DynamicList::class);
+        $allLists = DynamicList::get()->sort(['Title' => 'ASC']);
+        $options = $allLists->map('Title', 'Title');
 
-        $options = [
-            'Please create a DynamicList!' => '(No DynamicLists available)'
-        ];
-
-        if ($allLists) {
-            /* @var $allLists DataObjectSet */
-            $options = $allLists->map('Title', 'Title');
-        }
-
-        $fields->addFieldToTab(
-            'Root.Main',
+        $fields->insertAfter(
+            'Title',
             DropdownField::create(
                 'ListTitle',
-                _t('EditableDataListField.DYNAMICLIST_TITLE', 'List Title'),
+                _t('EditableDataListField.DYNAMICLIST_TITLE', 'Dynamic list'),
                 $options
+            )->setEmptyString(_t(self::class . '.DYNAMICLIST_SELECT_ONE', '(select one)'))
+            ->setDescription(
+                _t('EditableDataListField.DYNAMICLIST_TITLE_CHOOSE_INFO', 'Choose an available dynamic list. Options will be provided from the items linked to this list')
             )
         );
         return $fields;
