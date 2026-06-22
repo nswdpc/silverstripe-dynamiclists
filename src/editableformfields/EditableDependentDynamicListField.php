@@ -137,11 +137,11 @@ class EditableDependentDynamicListField extends EditableDropdown
         $sourceList = trim($this->SourceList ?? '');
         $optionLists = [];
 
+        $source = null;
         if($sourceList !== '') {
             // first off lets go and output all the options we need
             $fields = $this->getRelevantFieldsFromParent();
 
-            $source = null;
             foreach ($fields as $field) {
                 if ($field->Name == $sourceList) {
                     $source = $field;
