@@ -79,9 +79,8 @@ class EditableDependentDynamicListField extends EditableDropdown
         $parent = $this->Parent();
         if ($parent && $parent->hasExtension(UserFormFieldEditorExtension::class)) {
             return $parent;
-        } else {
-            return null;
         }
+        return null;
 
     }
 
