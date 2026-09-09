@@ -4,7 +4,11 @@ namespace Symbiote\DynamicLists;
 
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\LiteralField;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\HasManyList;
+use SilverStripe\UserForms\Extension\UserFormFieldEditorExtension;
 use SilverStripe\UserForms\Model\EditableFormField\EditableDropdown;
+use SilverStripe\UserForms\Model\EditableFormField;
 
 /*
 
@@ -40,28 +44,69 @@ if (!class_exists(EditableDropdown::class)) {
     return;
 }
 
+/**
+ * @property ?string $SourceList
+ */
 class EditableDependentDynamicListField extends EditableDropdown
 {
-    private static $db = [
+    private static array $db = [
         'SourceList' => 'Varchar(512)'
     ];
 
-    private static $table_name = 'EditableDependentDynamicListField';
+    private static string $table_name = 'EditableDependentDynamicListField';
 
-    private static $singular_name = 'Dependent Dynamic List field';
+    private static string $singular_name = 'Dependent Dynamic List field';
 
-    private static $plural_name = 'Dependent Dynamic List fields';
+    private static string $plural_name = 'Dependent Dynamic List fields';
 
-    public function Icon()
+    public function Icon(): string
     {
         return 'userforms/images/editabledropdown.png';
     }
 
+    #[\Override]
     public function getHasAddableOptions()
     {
         return false;
     }
 
+    /**
+     * Get the parent source object, must have the UserFormFieldEditorExtension
+     * as an extension
+     */
+    final protected function getParentForFields(): ?DataObject
+    {
+        $parent = $this->Parent();
+        if ($parent && $parent->hasExtension(UserFormFieldEditorExtension::class)) {
+            return $parent;
+        }
+
+        return null;
+
+    }
+
+    /**
+     * Get a list of EditableDynamicListField fields
+     * from the parent
+     */
+    protected function getRelevantFieldsFromParent(): ?HasManyList
+    {
+        $parent = $this->getParentForFields();
+        $fields = null;
+        if ($parent instanceof DataObject) {
+            // the parent has the UserFormFieldEditorExtension extension
+            // which provides the 'Fields' relation
+            // @phpstan-ignore method.notFound
+            $fields = $parent->Fields();
+            if ($fields instanceof HasManyList) {
+                $fields = $fields->innerJoin('EditableDynamicListField', '"EditableDynamicListField"."ID" = "EditableFormField"."ID"');
+            }
+        }
+
+        return $fields;
+    }
+
+    #[\Override]
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
@@ -70,11 +115,9 @@ class EditableDependentDynamicListField extends EditableDropdown
         // The assumption being made here is that each entry in the source list has a corresponding dynamic list
         // defined for it, which we use later on.
         $options = [];
-        if ($this->Parent()) {
-            $sourceList = $this->Parent()->Fields();
-            if ($sourceList) {
-                $options = $sourceList->map('Name', 'Title');
-            }
+        $sourceList = $this->getRelevantFieldsFromParent();
+        if ($sourceList instanceof \SilverStripe\ORM\HasManyList) {
+            $options = $sourceList->map('Name', 'Title');
         }
 
         $fields->addFieldToTab(
@@ -83,63 +126,70 @@ class EditableDependentDynamicListField extends EditableDropdown
                 'SourceList',
                 _t('EditableDependentDynamicListField.SOURCE_LIST_TITLE', 'Source List'),
                 $options
-            )
+            )->setEmptyString(_t(self::class . '.DYNAMICLIST_SELECT_ONE', '(select one)'))
         );
 
         return $fields;
     }
 
+    #[\Override]
     public function getFormField()
     {
-        $sourceList = $this->SourceList;
+        $sourceList = trim($this->SourceList ?? '');
+        $optionLists = [];
 
-        // first off lets go and output all the options we need
-        $fields = $this->Parent()->Fields();
         $source = null;
-        foreach ($fields as $field) {
-            if ($field->Name == $sourceList) {
-                $source = $field;
-                break;
+        if ($sourceList !== '') {
+            // first off lets go and output all the options we need
+            $fields = $this->getRelevantFieldsFromParent();
+
+            foreach ($fields as $field) {
+                if ($field->Name == $sourceList) {
+                    $source = $field;
+                    break;
+                }
             }
         }
 
-        $optionLists = [];
-        if ($source) {
+        if ($source instanceof \SilverStripe\ORM\DataObject) {
             // all our potential lists come from the source list's dynamic list source, so we need to go load that
             // first, then iterate it and build all the additional required lists
-            $sourceList = DynamicList::get_dynamic_list($source->ListTitle);
-            if ($sourceList) {
+            $sourceList = DynamicList::get_dynamic_list($source->ListTitle ?? '');
+            if ($sourceList instanceof \Symbiote\DynamicLists\DynamicList) {
                 $items = $sourceList->Items();
 
                 // now lets create a bunch of option fields
                 foreach ($items as $sourceItem) {
                     // now get the dynamic list that is represented by this one
-                    $list = DynamicList::get_dynamic_list($sourceItem->Title);
-                    if ($list) {
+                    $list = DynamicList::get_dynamic_list($sourceItem->Title ?? '');
+                    if ($list instanceof \Symbiote\DynamicLists\DynamicList) {
                         $optionLists[$sourceItem->Title] = $sourceItem->Title;
                     }
                 }
             }
 
-            if (count($optionLists)) {
+            if ($optionLists !== []) {
                 $field = DependentDynamicListDropdownField::create(
                     $this->Name,
                     $this->Title,
-                    $optionLists,
-                    $source->Name
+                    $optionLists,// array
+                    $source->Name// string
                 )->addExtraClass('uf-dependentdynamiclistdropdown');
             } else {
                 $field = DropdownField::create($this->Name, $this->Title, []);
             }
-            $field
-                ->setFieldHolderTemplate(EditableFormField::class . '_holder')
+
+            $field->setFieldHolderTemplate(EditableFormField::class . '_holder')
                 ->setTemplate(self::class);
-            $this->doUpdateFormField($field);
-            return $field;
+
+        } else {
+            $field = LiteralField::create(
+                $this->Name,
+                '<p>' . htmlspecialchars(_t('EditableDependentDynamicListField.NO_SOURCE_LIST_FOUND', 'No source list found')) . '</p>'
+            );
         }
 
-
-        // return a new list
-        return LiteralField::create($this->Name, 'no source list found');
+        $this->doUpdateFormField($field);
+        return $field;
     }
 }

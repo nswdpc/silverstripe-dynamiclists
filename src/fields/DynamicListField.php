@@ -15,7 +15,7 @@ class DynamicListField extends DropdownField
         'dropdown'
     ];
 
-    public function __construct($name, $title = null, $source = null, $value = "", $form = null, $emptyString = null)
+    public function __construct($name, $title = null, $source = null, $value = "")
     {
         if (!$source) {
             $source = [];
@@ -25,7 +25,7 @@ class DynamicListField extends DropdownField
             // it should be the name of a list, lets get all its contents
             $dynamicList = DynamicList::get_dynamic_list($source);
             $source = [];
-            if ($dynamicList) {
+            if ($dynamicList instanceof \Symbiote\DynamicLists\DynamicList) {
                 $items = $dynamicList->Items();
                 foreach ($items as $item) {
                     $source[$item->Title] = $item->Title;
@@ -33,6 +33,6 @@ class DynamicListField extends DropdownField
             }
         }
 
-        parent::__construct($name, $title, $source, $value, $form, $emptyString);
+        parent::__construct($name, $title, $source, $value);
     }
 }

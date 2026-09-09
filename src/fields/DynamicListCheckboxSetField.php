@@ -2,8 +2,6 @@
 
 namespace Symbiote\DynamicLists;
 
-use SilverStripe\Core\Convert;
-use SilverStripe\ORM\DataObject;
 use SilverStripe\Forms\CheckboxSetField;
 
 /*
@@ -12,7 +10,7 @@ use SilverStripe\Forms\CheckboxSetField;
  */
 class DynamicListCheckboxSetField extends CheckboxSetField
 {
-    public function __construct($name, $title = null, $source = null, $value = "", $form = null, $emptyString = null)
+    public function __construct($name, $title = null, $source = null, $value = "")
     {
         if (!$source) {
             $source = [];
@@ -22,7 +20,7 @@ class DynamicListCheckboxSetField extends CheckboxSetField
             // it should be the name of a list, lets get all its contents
             $dynamicList = DynamicList::get_dynamic_list($source);
             $source = [];
-            if ($dynamicList) {
+            if ($dynamicList instanceof \Symbiote\DynamicLists\DynamicList) {
                 $items = $dynamicList->Items();
                 foreach ($items as $item) {
                     $source[$item->Title] = $item->Title;
@@ -30,6 +28,6 @@ class DynamicListCheckboxSetField extends CheckboxSetField
             }
         }
 
-        parent::__construct($name, $title, $source, $value, $form, $emptyString);
+        parent::__construct($name, $title, $source, $value);
     }
 }

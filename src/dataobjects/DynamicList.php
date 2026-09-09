@@ -4,8 +4,8 @@ namespace Symbiote\DynamicLists;
 
 use SilverStripe\Forms\GridField\GridFieldConfig_RelationEditor;
 use SilverStripe\Forms\GridField\GridField;
+use SilverStripe\Security\Member;
 use SilverStripe\Security\Permission;
-use SilverStripe\Core\Convert;
 use SilverStripe\ORM\DataObject;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
 
@@ -16,27 +16,34 @@ use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
  *
  * @author Marcus Nyeholt <marcus@symbiote.com.au>
  * @license BSD License http://silverstripe.org/bsd-license
+ * @property string $Title
+ * @property ?string $CachedItems
+ * @method \SilverStripe\ORM\HasManyList<\Symbiote\DynamicLists\DynamicListItem> Items()
+ * @mixin \Symbiote\DynamicLists\DynamicListUDFExtension
  */
 class DynamicList extends DataObject
 {
-    private static $table_name = 'DynamicList';
+    private static string $table_name = 'DynamicList';
 
-    private static $db = [
+    private static array $db = [
         'Title' => 'Varchar(128)',
         'CachedItems'   => 'Text'
     ];
 
-    private static $has_many = [
+    private static array $indexes = [
+        'Title' => true
+    ];
+
+    private static array $has_many = [
         'Items' => DynamicListItem::class
     ];
 
     /**
      * Should list items be cached?
-     *
-     * @var boolean
      */
-    private static $cache_lists = false;
+    private static bool $cache_lists = false;
 
+    #[\Override]
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
@@ -44,10 +51,10 @@ class DynamicList extends DataObject
         $fields->removeByName('CachedItems');
 
         if ($this->ID) {
-            $orderableComponent = new GridFieldOrderableRows('Sort');
-            $conf=GridFieldConfig_RelationEditor::create(20);
+            $orderableComponent = GridFieldOrderableRows::create('Sort');
+            $conf = GridFieldConfig_RelationEditor::create(20);
             $conf->addComponent($orderableComponent);
-            $fields->addFieldToTab('Root.Items', new GridField('Items', 'Dynamic List Items', $this->Items(), $conf));
+            $fields->addFieldToTab('Root.Items', GridField::create('Items', 'Dynamic List Items', $this->Items(), $conf));
         }
 
         // Allow extension.
@@ -56,6 +63,7 @@ class DynamicList extends DataObject
         return $fields;
     }
 
+    #[\Override]
     public function onBeforeDelete()
     {
         parent::onBeforeDelete();
@@ -66,6 +74,7 @@ class DynamicList extends DataObject
         }
     }
 
+    #[\Override]
     public function canView($member = null)
     {
         return true;
@@ -75,6 +84,7 @@ class DynamicList extends DataObject
      * @param Member $member
      * @return boolean
      */
+    #[\Override]
     public function canEdit($member = null)
     {
         return Permission::check('CMS_ACCESS_Symbiote\DynamicLists\DynamicListAdmin', 'any', $member);
@@ -84,6 +94,7 @@ class DynamicList extends DataObject
      * @param Member $member
      * @return boolean
      */
+    #[\Override]
     public function canDelete($member = null)
     {
         return Permission::check('CMS_ACCESS_Symbiote\DynamicLists\DynamicListAdmin', 'any', $member);
@@ -95,30 +106,29 @@ class DynamicList extends DataObject
      * @param Member $member
      * @return boolean
      */
+    #[\Override]
     public function canCreate($member = null, $context = [])
     {
         return Permission::check('CMS_ACCESS_Symbiote\DynamicLists\DynamicListAdmin', 'any', $member);
     }
 
     /**
-     * Convenience method for getting a data list
-     *
-     * @param String $title
-     * @return DataObject
+     * Convenience method for getting a data list via its title
      */
-    public static function get_dynamic_list($title)
+    public static function get_dynamic_list(string $title): ?DynamicList
     {
-        $list = DynamicList::get()->filter('Title', $title)->first();
-        return $list;
+        return DynamicList::get()->filter(['Title' => $title])->first();
     }
 
-    public function getItemByTitle($title)
+    public function getItemByTitle($title): DynamicListItem
     {
-        $SQL_title = Convert::raw2sql($title);
-        $item = DataObject::get_one(DynamicListItem::class, "\"ListID\" = $this->ID AND \"Title\" = '{$SQL_title}'");
+        $item = DynamicListItem::get()->filter([
+            "ListID" => $this->ID,
+            "Title" => $title
+        ])->first();
         if (!$item || !$item->exists()) {
             // create item
-            $item = new DynamicListItem();
+            $item = DynamicListItem::create();
             $item->ListID = $this->ID;
             $item->Title = $title;
             $item->write();
@@ -143,14 +153,13 @@ class DynamicList extends DataObject
      */
     public function itemArray()
     {
-        if ($this->config()->cache_lists) {
+        if ($this->config()->get('cache_lists')) {
             $str = $this->CachedItems;
-            if (strlen($str) && $items = @unserialize($str)) {
+            if (strlen((string) $str) && $items = @unserialize($str)) {
                 return $items;
             }
         }
 
-        $mapped = $this->Items()->map()->toArray();
-        return $mapped;
+        return $this->Items()->map()->toArray();
     }
 }

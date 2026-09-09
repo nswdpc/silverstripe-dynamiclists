@@ -2,9 +2,9 @@
 
 namespace Symbiote\DynamicLists;
 
-use SilverStripe\ORM\DataObject;
 use SilverStripe\Forms\DropdownField;
-use \SilverStripe\UserForms\Model\EditableFormField\EditableDropdown;
+use SilverStripe\UserForms\Model\EditableFormField\EditableDropdown;
+use SilverStripe\UserForms\Model\EditableFormField;
 
 /*
 
@@ -38,55 +38,58 @@ if (!class_exists(EditableDropdown::class)) {
     return;
 }
 
+/**
+ * @property ?string $ListTitle
+ */
 class EditableDynamicListField extends EditableDropdown
 {
-    private static $db = [
+    private static array $db = [
         'ListTitle' => 'Varchar(512)'
     ];
 
-    private static $table_name = 'EditableDynamicListField';
+    private static string $table_name = 'EditableDynamicListField';
 
-    private static $singular_name = 'Dynamic List field';
-    private static $plural_name = 'Dynamic List fields';
+    private static string $singular_name = 'Dynamic List field';
 
-    public function Icon()
+    private static string $plural_name = 'Dynamic List fields';
+
+    public function Icon(): string
     {
         return 'userforms/images/editabledropdown.png';
     }
 
+    #[\Override]
     public function getHasAddableOptions()
     {
         return false;
     }
 
+    #[\Override]
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
+        // options are sourced from the selected dynamic list
         $fields->removeByName(['Options']);
 
         // get a list of data lists to select from
-        $allLists = DataObject::get(DynamicList::class);
+        $allLists = DynamicList::get()->sort(['Title' => 'ASC']);
+        $options = $allLists->map('Title', 'Title');
 
-        $options = [
-            'Please create a DynamicList!' => '(No DynamicLists available)'
-        ];
-
-        if ($allLists) {
-            /* @var $allLists DataObjectSet */
-            $options = $allLists->map('Title', 'Title');
-        }
-
-        $fields->addFieldToTab(
-            'Root.Main',
+        $fields->insertAfter(
+            'Title',
             DropdownField::create(
                 'ListTitle',
-                _t('EditableDataListField.DYNAMICLIST_TITLE', 'List Title'),
+                _t('EditableDataListField.DYNAMICLIST_TITLE', 'Dynamic list'),
                 $options
+            )->setEmptyString(_t(self::class . '.DYNAMICLIST_SELECT_ONE', '(select one)'))
+            ->setDescription(
+                _t('EditableDataListField.DYNAMICLIST_TITLE_CHOOSE_INFO', 'Choose an available dynamic list. Options will be provided from the items linked to this list')
             )
         );
         return $fields;
     }
 
+    #[\Override]
     public function getFormField()
     {
         $field = DynamicListField::create($this->Name, $this->Title, $this->ListTitle)
@@ -95,6 +98,7 @@ class EditableDynamicListField extends EditableDropdown
         if ($this->UseEmptyString) {
             $field->setEmptyString($this->EmptyString ?: '');
         }
+
         $this->doUpdateFormField($field);
         return $field;
     }

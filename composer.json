@@ -10,20 +10,56 @@
         }
     ],
     "require": {
-        "php": "^8.1",
-        "silverstripe/cms": "^4.12 || ^5",
-        "symbiote/silverstripe-gridfieldextensions": "^3 || ^4"
+        "php": "^8.3",
+        "silverstripe/cms": "^6",
+        "symbiote/silverstripe-gridfieldextensions": "^5"
+    },
+    "require-dev": {
+        "cambis/silverstripe-rector": "^2",
+        "cambis/silverstan": "^2",
+        "friendsofphp/php-cs-fixer": "^3",
+        "nswdpc/ci-files": "dev-v-4",
+        "phpunit/phpunit": "^11.5",
+        "phpstan/phpstan": "^2",
+        "phpstan/phpstan-phpunit": "^2",
+        "rector/rector": "^2",
+        "silverstripe/userforms": "^7.1"
+    },
+    "scripts": {
+        "phpstan-analyse": "./vendor/bin/phpstan analyse --ansi --no-progress --no-interaction --configuration vendor/nswdpc/ci-files/phpstan/.phpstan.silverstripe.neon src/ tests/",
+        "rector-dryrun": "./vendor/bin/rector process --dry-run --ansi --config vendor/nswdpc/ci-files/rector/.rector.silverstripe_6_83.php src/ tests/",
+        "rector-process": "./vendor/bin/rector process --no-diffs --ansi --config vendor/nswdpc/ci-files/rector/.rector.silverstripe_6_83.php src/ tests/",
+        "phpcsfixer-fix": "./vendor/bin/php-cs-fixer fix --ansi --no-interaction --config vendor/nswdpc/ci-files/php-cs-fixer/.php-cs-fixer.php src/ tests/"
+    },
+    "autoload": {
+        "psr-4": {
+            "Symbiote\\DynamicLists\\": [
+                "src/controllers",
+                "src/dataobjects",
+                "src/editableformfields",
+                "src/extensions",
+                "src/fields",
+                "src/loaders"
+            ],
+            "Symbiote\\DynamicLists\\Tests\\": "tests/"
+        }
     },
     "extra": {
         "expose": [
             "javascript"
-        ],
-        "branch-alias": {
-            "dev-master": "2.1.x-dev"
-        }
+        ]
     },
     "replace": {
         "sheadawson/silverstripe-dynamiclists": "self.version"
     },
-    "minimum-stability": "dev"
+    "prefer-stable": true,
+    "minimum-stability": "dev",
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true,
+            "silverstripe/vendor-plugin": true,
+            "silverstripe/recipe-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    }
 }

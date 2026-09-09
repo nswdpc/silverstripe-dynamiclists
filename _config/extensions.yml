@@ -1,4 +1,5 @@
 ---
+Name: 'symbiote-dynamiclists-userforms'
 Only:
   moduleexists: 'silverstripe/userforms'
 ---

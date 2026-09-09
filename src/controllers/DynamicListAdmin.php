@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Symbiote\DynamicLists;
 
 use SilverStripe\Admin\ModelAdmin;
@@ -30,14 +32,15 @@ OF SUCH DAMAGE.
  */
 class DynamicListAdmin extends ModelAdmin
 {
-    private static $url_segment = 'dynamiclistadmin';
-    private static $menu_title = "Dynamic Lists";
+    private static string $url_segment = 'dynamiclistadmin';
 
-    private static $managed_models = [
+    private static string $menu_title = "Dynamic Lists";
+
+    private static array $managed_models = [
         DynamicList::class
     ];
 
-    private static $model_importers = [
+    private static array $model_importers = [
         DynamicList::class => DynamicListCsvLoader::class
     ];
 }
